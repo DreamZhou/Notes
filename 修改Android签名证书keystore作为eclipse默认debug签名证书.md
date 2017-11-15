@@ -4,15 +4,11 @@
 
 ### Eclipse默认DebugKeystore格式要求
 
-	> Keystore name: “debug.keystore”
-	>
-	> Keystore password: “android”
-	>
-	> Key alias: “android”
-	>
-	> Key password: “android”
-	>
-	> CN: “CN=Android Debug,O=Android,C=US”
+	Keystore name: “debug.keystore”
+	Keystore password: “android”
+	Key alias: “android”
+	Key password: “android”
+	CN: “CN=Android Debug,O=Android,C=US”
 
 ### 制作DebugKeystore
 
