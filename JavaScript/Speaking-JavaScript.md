@@ -297,7 +297,7 @@ foo = 4;  //change variable `foo`
   console.log(Object.keys(obj11));
   ```
 
-#### Converting Any Value to an Object
+### Converting Any Value to an Object
 
 - convert an arbitrary value to an object  `Object()`
 
@@ -322,4 +322,212 @@ function(){
     return value === Object(value);
 }
 ```
+
+### this as an Implict Parameter of Functions and Methods
+
+- Normal functions in sloppy mode `this` is  global object (`window` in browsers)
+
+  ```javascript
+  function returnThisSloppy(){return this}
+  returnThisSloppy()=== window                  // true in browsers
+  ```
+
+- Normal functions in strict mode  `this`  is always `undefined` 
+
+  ```javascript
+  function returnThisStrict(){'use strict' return this}
+  returnThisStrict() === undefined 
+  ```
+
+- Methods `this` refer to the object on which the methods has been invoked
+
+  ```javascript
+  var obj13={method: returnThisStrict};
+  console.log("obj13.method() === obj13",obj13.method() === obj13);
+  ```
+
+#### Calling Functions While Setting this: call(), apply(), and bind()
+
+​	函数也对象，也有自己的方法：call() , apply(), bind()
+
+      ```javascript
+var jane= {
+    name: 'Jane',
+  	sayHelloTo: function(otherName){
+        'use strict';
+      	console.log(this.name+ ' says hello to '+otherName);
+    }
+};
+      ```
+
+
+
+- Function.prototype.call(thisValue, arg1?, arg2?, ...)
+
+  ```javascript
+  jane.sayHelloTo('Tarzan');
+  jane.sayHelloTo.call(jane, 'Tarzan');
+  var func = jane.sayHelloTo;
+  func.call(jane,'Tarzan');
+  ```
+
+- Function.prototype.apply(thisValue, argArray)
+
+  ```javascript
+  jane.sayHelloTo('jim');
+  jane.sayHelloTo.apply(jane,['jim']);
+  var funcApply = jane.sayHelloTo;
+  funcApply.apply(jane,['jim']);
+  ```
+
+- Function.prototype.bind(thisValue, arg1?, arg2?, ...)
+
+  This method perform `partial function application` it creats a new function that calls the receiver of bind() . `this`  : thisValue  arg1, arg2   产生一个新函数
+
+  ```javascript
+  function bindFunc(){
+      console.log('this' +this);
+    	console.log('arguments: '+Array.prototype.slice.call(arguments));
+  }
+  var bound = bindFunc.bind('abc', 1, 2);
+  bound(3);
+
+  jane.sayHelloTo('Marry');
+  var funcBind= jane.sayHelloTo.bind(jane);
+  funcBind('Marry');
+
+  var funcBind2 = jane.sayHelloTo.bind(jane,'Marry');
+  funcBind2();
+  ```
+
+#### apply() for Constructors
+
+- Manually simulating an apply() for constructors
+
+  ```javascript
+  var date1=new (Date.bind(null, 2017, 11, 24));
+  var date2=new (Function.prototype.bind.apply(Date,[2017, 11, 24]));
+
+  var arr= [2011, 11, 24];
+  var date3 = new (Function.prototype.bind.apply(Date,[null].concat(arr)));
+  console.log(date3);
+  ```
+
+- A library method
+
+  ```javascript
+  if(!Function.prototype.construct){
+      Function.prototype.construct = function(argArray){
+        if(!Array.isArray(argArray)){
+            throw new TypeError("Argument must be an array");
+        }
+        var constr = this;
+        var nullaryFunc= Function.prototype.bind.apply(
+        constr,[null].concat(argArray));
+        return new nullaryFunc();
+      };
+  }
+  console.log(Date.construct([2017, 12, 8]));
+  ```
+
+- An alternative approach
+
+  ```javascript
+  Function.prototype.construct = function(argArray){
+      var constr = this;
+    	var inst = Object.create(constr.prototype);
+    	var result = constr.apply(inst,argArray);
+    	return result? result:inst;
+  };
+  ```
+
+#### Pitfall :Losing this When Extracting a  Method
+
+```java
+var counter= {
+    count: 0,
+  	inc: function(){			 // 'use strict';  to get a warning;
+        ++this.count; 	 		// this refer to global object
+    },
+};
+var func = counter.inc;
+func();
+counter.count;
+```
+
+- How to properly extract a  method
+
+  ```javascript
+  var func2 = counter.inc.bind(counter);
+  func2();
+  console.log(counter.count);
+  ```
+
+#### Pitfall: Functions Inside Methods Shodow this
+
+- Workaround 1: that = this;
+
+  ```javascript
+  var obj14={
+      name:'Jane',
+      friends: ['Tarzan','Cheeta'],
+      loop: function(){
+          'use strict';
+        var that = this;
+        this.friends.forEach(function(friend){
+            console.log(that.name+ ' knows '+ friend);
+        });
+        
+      }
+  };
+  obj14.loop();
+  ```
+
+- Workaround 2: bind()
+
+  ```javascript
+  var obj15 ={
+      name:'Jane',
+      friends: ['Tarzan','Cheeta'],
+      loop: function(){
+          'use strict';
+        this.friends.forEach(function(friend){
+            console.log(this.name+ ' knows '+ friend);
+        }.bind(this));
+        
+      }
+  };
+  obj15.loop();
+  ```
+
+- Workaround 3: a thisValue for forEach()
+
+  ```javascript
+  var obj16 ={
+      name:'Jane',
+      friends: ['Tarzan','Cheeta'],
+      loop: function(){
+          'use strict';
+        this.friends.forEach(function(friend){
+            console.log(this.name+ ' knows '+ friend);
+        },this);
+        
+      }
+  };
+  obj16.loop();
+  ```
+
+### Layer2: The Prototype Relationship Between Objects
+
+
+
+
+
+
+
+
+
+
+
+
 
